@@ -49,3 +49,61 @@ for (const callButton of callButtons) {
     callHistory.appendChild(div);
   });
 }
+
+// clear button functionalities
+document.getElementById("clear-button").addEventListener("click", function () {
+  const callHistory = document.getElementById("call-history");
+  callHistory.innerText = "";
+});
+
+// copy button functionalities
+const copyButtons = document.getElementsByClassName("copy-btn");
+let copyCount = 0;
+for (copyButton of copyButtons) {
+  copyButton.addEventListener("click", function () {
+    const card = this.parentElement.parentElement;
+    const number = card.getElementsByClassName("call-number")[0].innerText;
+    alert(`Number copied: ${number}`);
+    copyCount++;
+    document.getElementById("copy-count").innerText = copyCount;
+  });
+}
+
+// for copying text after clicking copy buton
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".copy-btn");
+  if (!btn) return;
+
+  const card = btn.closest(".card");
+  const source = card && card.querySelector("[data-copy]");
+  if (!source) return;
+
+  const text = source.innerText.trim();
+
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
+    fallbackCopy(text).catch(() => alert("Sorry, copy failed."));
+  }
+});
+
+function fallbackCopy(text) {
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+
+    try {
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      ok ? resolve() : reject(new Error("execCommand failed"));
+    } catch (e) {
+      document.body.removeChild(ta);
+      reject(e);
+    }
+  });
+}
